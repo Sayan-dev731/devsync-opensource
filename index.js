@@ -2,17 +2,20 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
-// const GitHubStrategy = require('passport-github2').Strategy;
+const GitHubStrategy = require('passport-github2').Strategy;
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
-// const { Octokit } = require('@octokit/rest');
-// const User = require('./models/User');
+const { Octokit } = require('@octokit/rest');
+const User = require('./models/User');
 const Repo = require('./models/Repo');
 // const Event = require('./models/Event');
 // const PendingPR = require('./models/PendingPR');
 const Ticket = require('./models/Ticket'); // Add Ticket model
 const MongoStore = require('connect-mongo');
+const { verifyApiKey, verifyVpnKey } = require('./middleware/apiAuth');
+const { applySecurityMiddleware } = require('./security-config');
+const { HealthMonitor, createHealthRoute } = require('./health');
 // const emailService = require('./services/emailService');
 // const dbSync = require('./utils/dbSync');
 // const PORT = process.env.PORT || 5500;
@@ -24,9 +27,9 @@ const app = express();
 // const PROGRAM_START_DATE = '2025-03-14';
 
 // Create authenticated Octokit instance
-// const octokit = new Octokit({
-//     auth: process.env.GITHUB_ACCESS_TOKEN
-// });
+const octokit = new Octokit({
+    auth: process.env.GITHUB_ACCESS_TOKEN
+});
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
@@ -233,9 +236,12 @@ app.use(passport.session());
 // passport.serializeUser((user, done) => done(null, user));
 // passport.deserializeUser((user, done) => done(null, user));
 
-// Auth routes
+// Apply security middleware before defining routes
+applySecurityMiddleware(app);
+
+// Auth routes - mount at /auth, not /auth/github
 const authRoutes = require('./routes/authRoutes');
-app.use("/auth/github", authRoutes);
+app.use("/auth", authRoutes);
 // app.get('/auth/github',
 //     passport.authenticate('github', { scope: ['user'] })
 // );
@@ -396,9 +402,14 @@ app.use('/api/stats', statsRoutes);
 //     }
 // });
 
-app.get('/logout', (req, res) => {
-    req.logout();
-    res.redirect(`${serverUrl}/index.html`);
+// Logout route (keep for backward compatibility)
+app.get('/logout', (req, res, next) => {
+    req.logout((err) => {
+        if (err) {
+            return next(err);
+        }
+        res.redirect(`${serverUrl}/index.html`);
+    });
 });
 
 // Update GitHub API routes with Octokit
@@ -1943,9 +1954,22 @@ app.use('/api/sponsorship', sponsorshipRoutes);
 //     }
 // });
 
-// Add ticket routes BEFORE the catch-all route and AFTER other API routes
+// Ticket routes
 const ticketRoutes = require('./routes/ticketRoutes');
 app.use('/api/tickets', ticketRoutes);
+
+// Health monitoring routes
+const healthMonitor = new HealthMonitor({
+    baseUrl: process.env.SERVER_URL || 'http://localhost:3000',
+    interval: 30000 // 30 seconds
+});
+
+// Initialize health monitoring
+healthMonitor.start();
+
+// Health API routes  
+const healthRoute = createHealthRoute(healthMonitor);
+app.use('/api/health', healthRoute);
 
 // Add ticket cleanup job
 const cleanupExpiredTickets = async () => {
@@ -1992,16 +2016,7 @@ async function startServer() {
 
         // Ensure all routes are registered before the catch-all
 
-        // Catch-all route for SPA - must be LAST after ALL API routes
-        // Added
-        app.get('*', (req, res) => {
-            // Only serve index.html for non-API routes
-            if (!req.path.startsWith('/api/')) {
-                res.sendFile(path.join(__dirname, 'public', 'index.html'));
-            } else {
-                res.status(404).json({ error: 'API endpoint not found' });
-            }
-        });
+        // Routes will be defined before the catch-all route at the end
 
         app.listen(PORT, () => {
             console.log(`Server running on http://localhost:${PORT}`);
@@ -2155,7 +2170,7 @@ startServer();
 //     }
 // });
 
-// Add admin email sending endpoint
+// // Add admin email sending endpoint
 // app.post('/api/admin/send-email', async (req, res) => {
 //     if (!req.isAuthenticated()) {
 //         return res.status(401).json({ error: 'Unauthorized' });
@@ -2542,3 +2557,117 @@ function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
+
+// Rate limiting middleware
+const rateLimit = (req, res, next) => {
+    const ip = req.ip;
+    const now = Date.now();
+    const windowMs = 15 * 60 * 1000; // 15 minutes
+    const maxRequests = 100; // Limit each IP to 100 requests per windowMs
+
+    if (!global.rateLimitData) {
+        global.rateLimitData = {};
+    }
+
+    if (!global.rateLimitData[ip]) {
+        global.rateLimitData[ip] = { count: 0, firstRequestTime: now };
+    }
+
+    global.rateLimitData[ip].count++;
+
+    // Reset count after the time window
+    if (now - global.rateLimitData[ip].firstRequestTime > windowMs) {
+        global.rateLimitData[ip].count = 1;
+        global.rateLimitData[ip].firstRequestTime = now;
+    }
+
+    if (global.rateLimitData[ip].count > maxRequests) {
+        return res.status(429).json({ error: 'Too many requests - please try again later' });
+    }
+
+    next();
+};
+
+// Apply rate limiting to all API routes
+app.use('/api', rateLimit);
+
+// Protected API routes - require API key
+app.use('/api/protected', verifyApiKey);
+
+// Super secure routes - require VPN key
+app.use('/api/vpn', verifyVpnKey);
+
+// Example protected routes
+app.get('/api/protected/users', verifyApiKey, async (req, res) => {
+    try {
+        // Your protected logic here
+        const users = await User.find({}).select('-password');
+        res.json({
+            success: true,
+            data: users,
+            message: 'Data retrieved successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+});
+
+// VPN-level protected route
+app.get('/api/vpn/admin-data', verifyVpnKey, async (req, res) => {
+    try {
+        // Super sensitive admin data
+        const adminData = {
+            totalUsers: await User.countDocuments(),
+            systemStats: {
+                uptime: process.uptime(),
+                memory: process.memoryUsage()
+            }
+        };
+        
+        res.json({
+            success: true,
+            data: adminData,
+            message: 'Admin data retrieved successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+});
+
+// Catch-all route for SPA - must be LAST after ALL API routes
+app.get('*', (req, res) => {
+    // Only serve index.html for non-API routes
+    if (!req.path.startsWith('/api/')) {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    } else {
+        res.status(404).json({ error: 'API endpoint not found' });
+    }
+});
+
+// Add this temporarily to your index.js for testing
+app.get('/test-admin', (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.json({ 
+            isAuthenticated: false,
+            message: 'Not logged in'
+        });
+    }
+
+    const adminIds = process.env.ADMIN_GITHUB_IDS.split(',');
+    const isAdmin = adminIds.includes(req.user.username);
+
+    res.json({
+        isAuthenticated: true,
+        username: req.user.username,
+        isAdmin: isAdmin,
+        adminIds: adminIds // Remove this in production
+    });
+});
