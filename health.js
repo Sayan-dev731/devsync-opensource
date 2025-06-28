@@ -16,8 +16,8 @@ class HealthMonitor {
     constructor(config = {}) {
         this.config = {
             baseUrl: config.baseUrl || 'http://localhost:3000',
-            apiKey: config.apiKey || process.env.API_SECRET_KEY || 'super@123',
-            vpnKey: config.vpnKey || process.env.VPN_API_KEY || 'vpn-private-key-2024-secure-access',
+            apiKey: config.apiKey || process.env.API_SECRET_KEY || '',
+            vpnKey: config.vpnKey || process.env.VPN_API_KEY || '',
             interval: config.interval || 30000, // 30 seconds
             timeout: config.timeout || 10000,
             ...config

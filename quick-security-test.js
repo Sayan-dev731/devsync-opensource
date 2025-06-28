@@ -5,11 +5,13 @@
  * 
  * Quick validation script to test key security endpoints
  */
+const dotenv = require('dotenv');
+dotenv.config();
 
 const http = require('http');
 
-const API_KEY = 'super@123';
-const VPN_KEY = 'vpn-private-key-2024-secure-access';
+const API_KEY = process.env.API_SECRET_KEY;
+const VPN_KEY = process.env.VPN_API_KEY;
 const BASE_URL = 'http://localhost:3000';
 
 const quickTests = [
