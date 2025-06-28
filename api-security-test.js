@@ -18,8 +18,8 @@ const { URL } = require('url');
 // Test Configuration
 const CONFIG = {
     BASE_URL: process.env.TEST_BASE_URL || 'http://localhost:3000',
-    API_KEY: process.env.API_SECRET_KEY || 'super@123',
-    VPN_KEY: process.env.VPN_API_KEY || 'vpn-private-key-2024-secure-access',
+    API_KEY: process.env.API_SECRET_KEY || '',
+    VPN_KEY: process.env.VPN_API_KEY || '',
     TIMEOUT: 10000
 };
 
