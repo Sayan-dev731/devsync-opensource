@@ -252,5 +252,6 @@ module.exports = {
     getApprovedMergedPRs,
     calculatePointsFromApprovedPRs,
     isValidEmail,
-    calculateProfileCompleteness
+    calculateProfileCompleteness,
+    normalizeAndValidateGitHubUrl
 };

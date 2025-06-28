@@ -402,14 +402,9 @@ app.use('/api/stats', statsRoutes);
 //     }
 // });
 
-// Logout route (keep for backward compatibility)
-app.get('/logout', (req, res, next) => {
-    req.logout((err) => {
-        if (err) {
-            return next(err);
-        }
-        res.redirect(`${serverUrl}/index.html`);
-    });
+app.get('/logout', (req, res) => {
+    req.logout();
+    res.redirect(`${serverUrl}/index.html`);
 });
 
 // Update GitHub API routes with Octokit

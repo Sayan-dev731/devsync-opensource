@@ -4,13 +4,11 @@ const dotenv = require('dotenv');
 dotenv.config();
 const router = express.Router();
 
-// GitHub OAuth login - this will be accessed as /auth/github
 router.get('/github',
-    passport.authenticate('github', { scope: ['user', 'user:email'] })
+    passport.authenticate('github', { scope: ['user'] })
 );
 
-// GitHub OAuth callback - this will be accessed as /auth/github/callback
-router.get('/github/callback',
+router.get('/callback',
     passport.authenticate('github', { failureRedirect: '/login' }),
     (req, res) => {
         // Successful authentication, redirect to frontend
