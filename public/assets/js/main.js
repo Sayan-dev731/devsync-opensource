@@ -308,7 +308,8 @@ function updateNavigation() {
                 }
             } else {
                 // User is logged in, replace login button with profile
-                const displayName = (user.displayName || 'User').split(' ')[0];
+                const fullDisplayName = user.displayName || user.username || 'User';
+                // Use full name with CSS ellipsis handling
                 const profileImg = user.photos[0]?.value || 'assets/img/default-avatar.png';
                 const hasNavListLogin = nav.querySelector('a[href="/login"]');
 
@@ -322,6 +323,7 @@ function updateNavigation() {
                     loginButton.href = "/profile";
                     loginButton.className = "nav__profile";
                     loginButton.innerHTML = `
+                        <span class="nav__profile-name" title="${fullDisplayName}">${fullDisplayName}</span>
                         <img src="${profileImg}" alt="Profile" class="nav__profile-img">
                     `;
                 }
