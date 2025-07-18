@@ -1,7 +1,7 @@
 # DevSync 2025 - Open Source Community Platform
 
 <div align="center">
-  <img src="public/assets/img/logo.png" alt="DevSync Logo" width="200">
+  <img src="" alt="DevSync Logo" width="200">
 
   <h3>Build Together, Grow Together</h3>
 
