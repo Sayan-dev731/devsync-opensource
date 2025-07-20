@@ -105,7 +105,7 @@ html.light [data-nav-tl] .link-track-fill {
 }
 
 html.dark [data-nav-tl] .link-track-fill {
-    background-color: var(--
+    background-color: var(--main-dark) !important;
 }
 
 html.dark .checkbox-toggle:focus {
@@ -736,11 +736,11 @@ a {
     user-select: none;
 }
 
-.mbm-diff {
+/* .mbm-diff {
     mix-blend-mode: difference;
     color: var(--main-light);
     user-select: none;
-}
+} */
 
 [no-mbm] {
     color: var(--main-dark);

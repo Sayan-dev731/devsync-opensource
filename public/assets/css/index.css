@@ -303,9 +303,9 @@ html.dark .btn-w .btn-icon-w .btn-txt {
 }
 
 html.dark .hud-menu-link [stagger-text],
-.page-link-w [split-text] {
+/* .page-link-w [split-text] {
     text-shadow: 0px 1em 0px var(--main-light);
-}
+} */
 
 html.dark .page-link-w [split-text] {
     text-shadow: 0px 1em 0px var(--main-light);
@@ -398,7 +398,7 @@ html.light .btn-w .btn-icon-w .btn-txt {
 }
 
 html.light .hud-menu-link [stagger-text] {
-    text-shadow: 0px 1em 0px var(--main-dark);
+    /* text-shadow: 0px 1em 0px var(--main-dark); */
 }
 
 /* html.light .page-link-w [split-text] {
@@ -651,10 +651,10 @@ a {
 }
 
 /* Simple Buttons */
-.hud-menu-link [stagger-text],
+/* .hud-menu-link [stagger-text],
 .page-link-w [split-text] {
     text-shadow: 0px 1em 0px var(--main-dark);
-}
+} */
 
 .hud-menu-link .btn-icon-w .btn-txt {
     text-shadow: -1em 0px 0px var(--main-dark);
@@ -743,9 +743,14 @@ a {
     user-select: none;
 }
 
-.mbm-diff {
-    mix-blend-mode: difference;
+html.dark .mbm-diff {
+    /* mix-blend-mode: difference; */
     color: var(--main-light);
+    user-select: none;
+}
+html.light .mbm-diff {
+    /* mix-blend-mode: difference; */
+    color: var(--main-dark);
     user-select: none;
 }
 
@@ -1674,70 +1679,70 @@ html.light .recognition-card:hover {
 
 /* Badge Image Styles */
 .hcs-img-w.level1 {
-    background-image: url('/assets/img/badges/levels/level1.png');
+    background-image: url('https://cdn.devsync.club/devsync-assets/Badges/level1.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
 .hcs-img-w.level2 {
-    background-image: url('/assets/img/badges/levels/level2.png');
+    background-image: url('https://cdn.devsync.club/devsync-assets/Badges/level2.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
 .hcs-img-w.level3 {
-    background-image: url('/assets/img/badges/levels/level3.png');
+    background-image: url('https://cdn.devsync.club/devsync-assets/Badges/level3.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
 .hcs-img-w.level4 {
-    background-image: url('/assets/img/badges/levels/level4.png');
+    background-image: url('https://cdn.devsync.club/devsync-assets/Badges/level4.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
 .hcs-img-w.level5 {
-    background-image: url('/assets/img/badges/levels/level5.png');
+    background-image: url('https://cdn.devsync.club/devsync-assets/Badges/level5.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
 .hcs-img-w.level6 {
-    background-image: url('/assets/img/badges/levels/level6.png');
+    background-image: url('https://cdn.devsync.club/devsync-assets/Badges/level6.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
 .hcs-img-w.level7 {
-    background-image: url('/assets/img/badges/levels/level7.png');
+    background-image: url('https://cdn.devsync.club/devsync-assets/Badges/level7.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
 .hcs-img-w.level8 {
-    background-image: url('/assets/img/badges/levels/level8.png');
+    background-image: url('https://cdn.devsync.club/devsync-assets/Badges/level8.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
 .hcs-img-w.level9 {
-    background-image: url('/assets/img/badges/levels/level9.png');
+    background-image: url('https://cdn.devsync.club/devsync-assets/Badges/level9.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
 .hcs-img-w.level10 {
-    background-image: url('/assets/img/badges/levels/level10.png');
+    background-image: url('https://cdn.devsync.club/devsync-assets/Badges/level10.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

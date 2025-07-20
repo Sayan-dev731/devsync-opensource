@@ -397,12 +397,12 @@ html.light .btn-w .btn-icon-w .btn-txt {
     text-shadow: -1em 0px 0px var(--main-dark);
 }
 
-/* html.light .hud-menu-link [stagger-text] {
-    text-shadow: 0px 1em 0px var(--main-dark);
-} */
+html.light .hud-menu-link [stagger-text] {
+    /* text-shadow: 0px 1em 0px var(--main-dark); */
+}
 
 html.light .page-link-w [split-text] {
-    text-shadow: 0px 1em 0px var(--main-light);
+    /* text-shadow: 0px 1em 0px var(--main-light); */
 }
 
 html.light .hud-menu-link .btn-icon-w .btn-txt {
@@ -739,11 +739,11 @@ a {
     user-select: none;
 }
 
-.mbm-diff {
+/* .mbm-diff {
     mix-blend-mode: difference;
     color: var(--main-light);
     user-select: none;
-}
+} */
 
 [no-mbm] {
     color: var(--main-dark);
