@@ -1,25 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Projects.js loaded and DOM ready');
+    // console.log('Projects.js loaded and DOM ready');
 
     // Global debug function for testing button clicks
     window.testViewRepoButtons = function() {
-        console.log('=== Testing View Repository Buttons ===');
+        // console.log('=== Testing View Repository Buttons ===');
         const allViewRepoButtons = document.querySelectorAll('.view-repo');
-        console.log(`Found ${allViewRepoButtons.length} view-repo buttons`);
+        // console.log(`Found ${allViewRepoButtons.length} view-repo buttons`);
         
         allViewRepoButtons.forEach((btn, index) => {
             const url = btn.dataset.url;
             const computedStyle = window.getComputedStyle(btn);
-            console.log(`Button ${index + 1}:`, {
-                element: btn,
-                url: url,
-                pointerEvents: computedStyle.pointerEvents,
-                cursor: computedStyle.cursor,
-                zIndex: computedStyle.zIndex,
-                position: computedStyle.position,
-                isVisible: btn.offsetParent !== null,
-                clientRect: btn.getBoundingClientRect()
-            });
+            // console.log(`Button ${index + 1}:`, {
+            //     element: btn,
+            //     url: url,
+            //     pointerEvents: computedStyle.pointerEvents,
+            //     cursor: computedStyle.cursor,
+            //     zIndex: computedStyle.zIndex,
+            //     position: computedStyle.position,
+            //     isVisible: btn.offsetParent !== null,
+            //     clientRect: btn.getBoundingClientRect()
+            // });
         });
         
         return allViewRepoButtons;
@@ -29,16 +29,16 @@ document.addEventListener('DOMContentLoaded', () => {
     window.testButtonClick = function(buttonIndex = 0) {
         const buttons = document.querySelectorAll('.view-repo');
         if (buttons[buttonIndex]) {
-            console.log('Manually triggering click on button:', buttonIndex);
+            // console.log('Manually triggering click on button:', buttonIndex);
             buttons[buttonIndex].click();
         } else {
-            console.log('Button not found at index:', buttonIndex);
+            // console.log('Button not found at index:', buttonIndex);
         }
     };
 
     // Global function to check for event conflicts
     window.checkEventConflicts = function() {
-        console.log('=== Checking for Event Conflicts ===');
+        // console.log('=== Checking for Event Conflicts ===');
         const containers = [
             { name: 'Projects Container', element: document.getElementById('projectsContainer') },
             { name: 'Accepted Container', element: document.getElementById('acceptedContainer') },
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         containers.forEach(({ name, element }) => {
             if (element) {
                 const listeners = getEventListeners ? getEventListeners(element) : 'getEventListeners not available';
-                console.log(`${name} listeners:`, listeners);
+                // console.log(`${name} listeners:`, listeners);
             }
         });
     };
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Add event delegation for project interactions
             const handleProjectClick = (e) => {
-                console.log('Click detected on:', e.target, 'Classes:', e.target.className); // Debug log
+                // console.log('Click detected on:', e.target, 'Classes:', e.target.className); // Debug log
                 
                 // Handle view repository button clicks with enhanced prevention
                 const viewBtn = e.target.closest('.view-repo');
@@ -212,8 +212,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopImmediatePropagation();
                     
                     const repoUrl = viewBtn.getAttribute('data-url') || viewBtn.dataset.url;
-                    console.log('View repo clicked. URL found:', repoUrl); // Debug log
-                    console.log('Button element:', viewBtn); // Debug log
+                    // console.log('View repo clicked. URL found:', repoUrl); // Debug log
+                    // console.log('Button element:', viewBtn); // Debug log
                     
                     if (!repoUrl) {
                         console.error('No repository URL found on button:', viewBtn);
@@ -232,13 +232,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Open repository in new tab with additional safety measures
                     try {
-                        console.log('Attempting to open URL:', repoUrl); // Debug log
+                        // console.log('Attempting to open URL:', repoUrl); // Debug log
                         
                         // Use a timeout to ensure the event is fully handled first
                         setTimeout(() => {
                             const newWindow = window.open(repoUrl, '_blank', 'noopener,noreferrer');
                             if (newWindow) {
-                                console.log('Repository opened successfully');
+                                // console.log('Repository opened successfully');
                                 // showToast('Repository opened in new tab', 'success', 2000);
                             } else {
                                 console.warn('Popup blocked, trying alternative method');
@@ -1715,19 +1715,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Enhanced event delegation for accepted projects
             const handleAcceptedProjectClick = (e) => {
-                console.log('Accepted project click event:', e.target);
+                // console.log('Accepted project click event:', e.target);
                 
                 // Handle view repository button clicks with enhanced prevention
                 const viewBtn = e.target.closest('.view-repo');
                 if (viewBtn) {
-                    console.log('View repo button clicked:', viewBtn);
+                    // console.log('View repo button clicked:', viewBtn);
                     // Immediately prevent all default behaviors and stop propagation
                     e.preventDefault();
                     e.stopPropagation();
                     e.stopImmediatePropagation();
                     
                     const repoUrl = viewBtn.dataset.url;
-                    console.log('Repository URL:', repoUrl);
+                    // console.log('Repository URL:', repoUrl);
                     
                     if (!repoUrl) {
                         console.error('No repository URL found on button:', viewBtn);
@@ -1749,7 +1749,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         try {
                             const newWindow = window.open(repoUrl, '_blank', 'noopener,noreferrer');
                             if (newWindow) {
-                                console.log('Repository opened successfully');
+                                // console.log('Repository opened successfully');
                                 showToast('Repository opened in new tab', 'success', 2000);
                             } else {
                                 console.warn('Popup blocked, trying alternative method');
@@ -2142,7 +2142,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopImmediatePropagation();
                 
                 const repoUrl = viewBtn.dataset.url;
-                console.log('Admin view repo clicked. URL:', repoUrl);
+                // console.log('Admin view repo clicked. URL:', repoUrl);
                 
                 if (!repoUrl) {
                     console.error('No repository URL found on admin button:', viewBtn);
@@ -2164,7 +2164,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         const newWindow = window.open(repoUrl, '_blank', 'noopener,noreferrer');
                         if (newWindow) {
-                            console.log('Admin repository opened successfully');
+                            // console.log('Admin repository opened successfully');
                             showToast('Repository opened in new tab', 'success', 2000);
                         } else {
                             console.warn('Admin popup blocked, trying alternative method');
@@ -2380,7 +2380,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to show project details in a popup
     window.showProjectDetails = function (projectId) {
-        console.log('🔍 Showing project details for ID:', projectId);
+        // console.log('🔍 Showing project details for ID:', projectId);
 
         // Find the project data from the card
         const projectCard = document.querySelector(`[data-project-id="${projectId}"]`);
@@ -2398,7 +2398,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let project;
         try {
             project = JSON.parse(projectDataStr);
-            console.log('✅ Project data parsed:', project);
+            // console.log('✅ Project data parsed:', project);
         } catch (error) {
             console.error('❌ Error parsing project data:', error);
             return;
@@ -2483,7 +2483,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        console.log('📝 Generated modal content:', modalContent.substring(0, 100) + '...');
+        // console.log('📝 Generated modal content:', modalContent.substring(0, 100) + '...');
 
         // Remove any existing project modals
         const existingModals = document.querySelectorAll('.project-modal-overlay');
@@ -2596,21 +2596,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add to DOM and show with animation
         document.body.appendChild(modal);
-        console.log('✅ Modal added to DOM');
+        // console.log('✅ Modal added to DOM');
 
         // Force reflow
         modal.offsetHeight;
 
         // Show modal with animation
         setTimeout(() => {
-            console.log('🎬 Starting modal animation');
+            // console.log('🎬 Starting modal animation');
             modal.style.opacity = '1';
             modal.style.visibility = 'visible';
             const content = modal.querySelector('.project-modal-content');
             if (content) {
                 content.style.transform = 'scale(1) translateY(0)';
                 content.style.opacity = '1';
-                console.log('✅ Modal content animated');
+                // console.log('✅ Modal content animated');
             }
         }, 10);
 
