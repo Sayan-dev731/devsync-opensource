@@ -44,6 +44,36 @@ const userSchema = new mongoose.Schema({
     welcomeEmailSent: {
         type: Boolean,
         default: false
+    },
+    emailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: {
+        type: String,
+        default: null
+    },
+    emailVerificationExpires: {
+        type: Date,
+        default: null
+    },
+    verificationEmailSent: {
+        type: Boolean,
+        default: false
+    },
+    verificationEmailSentAt: {
+        type: Date,
+        default: null
+    },
+    // Referral system fields
+    referredBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Ambassador',
+        default: null
+    },
+    referralCode: {
+        type: String,
+        default: null
     }
 });
 

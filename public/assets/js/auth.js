@@ -1,6 +1,20 @@
-// const serverUrl = 'https://devsync-opensource.tech';
-// const serverUrl = 'https://www.devsync.club';
-const serverUrl = 'http://localhost:3000';
+// Server URL - will be set by config service
+let serverUrl = window.location.origin; // fallback
+
+// Load serverUrl from config service when available
+if (window.configService) {
+    window.configService.loadConfig().then(config => {
+        serverUrl = config.serverUrl;
+    }).catch(error => {
+        console.warn('Failed to load server config in auth.js, using fallback:', error);
+        serverUrl = window.location.origin;
+    });
+} else {
+    // Listen for config loaded event
+    window.addEventListener('configLoaded', (event) => {
+        serverUrl = event.detail.serverUrl;
+    });
+}
 
 /**
  * Extract the first word/name from a full name or username
@@ -160,7 +174,7 @@ function triggerLogoutWithAnimation() {
     // Show the animation first
     showPageWipeAnimation().then(() => {
         // Navigate to logout endpoint
-        window.location.href = `${serverUrl}/auth/logout`;
+        window.location.href = `${serverUrl}/api/auth/logout`;
     });
 }
 
@@ -335,7 +349,7 @@ function updateAuthButton(selector, data) {
                 // Add click handler for animated auth
                 button.onclick = function (e) {
                     e.preventDefault();
-                    triggerAuthWithAnimation(`${serverUrl}/auth/github`);
+                    triggerAuthWithAnimation(`${serverUrl}/api/auth/github`);
                 };
             } else {
                 button.innerHTML = `
@@ -350,12 +364,12 @@ function updateAuthButton(selector, data) {
                     </div>
                 `;
             }
-            button.href = `${serverUrl}/auth/github`;
+            button.href = `${serverUrl}/api/auth/github`;
 
             // Add click handler for animated auth
             button.onclick = function (e) {
                 e.preventDefault();
-                triggerAuthWithAnimation(`${serverUrl}/auth/github`);
+                triggerAuthWithAnimation(`${serverUrl}/api/auth/github`);
             };
 
             button.classList.remove('authenticated');
@@ -417,12 +431,12 @@ function updateCtaButton(selector, data) {
                 <div class="btn-bg-fill"></div>
             </div>
         `;
-        button.href = `${serverUrl}/auth/github`;
+        button.href = `${serverUrl}/api/auth/github`;
 
         // Add click handler for animated auth
         button.onclick = function (e) {
             e.preventDefault();
-            triggerAuthWithAnimation(`${serverUrl}/auth/github`);
+            triggerAuthWithAnimation(`${serverUrl}/api/auth/github`);
         };
     }
 }
@@ -438,7 +452,7 @@ function setLoginState() {
     buttons.forEach(selector => {
         const button = document.querySelector(selector);
         if (button) {
-            button.href = `${serverUrl}/auth/github`;
+            button.href = `${serverUrl}/api/auth/github`;
         }
     });
 
@@ -450,7 +464,7 @@ function setLoginState() {
     ctaButtons.forEach(selector => {
         const button = document.querySelector(selector);
         if (button) {
-            button.href = `${serverUrl}/auth/github`;
+            button.href = `${serverUrl}/api/auth/github`;
         }
     });
 }
