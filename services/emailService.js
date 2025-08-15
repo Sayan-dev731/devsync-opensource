@@ -3,7 +3,13 @@ const fs = require('fs').promises;
 const path = require('path');
 const handlebars = require('handlebars');
 
+/**
+ * Service for sending emails using nodemailer and handlebars templates.
+ */
 class EmailService {
+    /**
+     * Initializes the EmailService with template cache and transporter.
+     */
     constructor() {
         this.templates = {};
         this.transporter = nodemailer.createTransport({
@@ -15,6 +21,11 @@ class EmailService {
         });
     }
 
+    /**
+     * Loads and compiles an email template by name.
+     * @param {string} templateName - Name of the template (without .html).
+     * @returns {Promise<Function>} Compiled handlebars template function.
+     */
     async loadTemplate(templateName) {
         if (!this.templates[templateName]) {
             const templatePath = path.join(__dirname, '..', 'templates', `${templateName}.html`);
@@ -24,17 +35,21 @@ class EmailService {
         return this.templates[templateName];
     }
 
+    /**
+     * Sends a welcome email to a new user.
+     * @param {string} userEmail - Recipient's email address.
+     * @param {string} username - Recipient's username.
+     * @returns {Promise<boolean>} True if sent successfully, false otherwise.
+     */
     async sendWelcomeEmail(userEmail, username) {
         try {
             const template = await this.loadTemplate('welcomeEmail');
-
             const mailOptions = {
                 from: process.env.gmail_email,
                 to: userEmail,
                 subject: 'Welcome to DevSync OpenSource!',
                 html: template({ username })
             };
-
             await this.transporter.sendMail(mailOptions);
             console.log(`Welcome email sent to ${userEmail}`);
             return true;
@@ -44,11 +59,16 @@ class EmailService {
         }
     }
 
+    /**
+     * Sends a project submission confirmation email.
+     * @param {string} userEmail - Recipient's email address.
+     * @param {Object} projectData - Project details.
+     * @returns {Promise<boolean>} True if sent successfully, false otherwise.
+     */
     async sendProjectSubmissionEmail(userEmail, projectData) {
         try {
             const template = await this.loadTemplate('projectSubmissionEmail');
             const repoName = projectData.repoLink.split('/').pop();
-
             const mailOptions = {
                 from: process.env.gmail_email,
                 to: userEmail,
@@ -62,7 +82,6 @@ class EmailService {
                     submittedDate: new Date().toLocaleDateString()
                 })
             };
-
             await this.transporter.sendMail(mailOptions);
             console.log(`Project submission email sent to ${userEmail}`);
             return true;
@@ -72,11 +91,16 @@ class EmailService {
         }
     }
 
+    /**
+     * Sends a project accepted notification email.
+     * @param {string} userEmail - Recipient's email address.
+     * @param {Object} projectData - Project details.
+     * @returns {Promise<boolean>} True if sent successfully, false otherwise.
+     */
     async sendProjectAcceptedEmail(userEmail, projectData) {
         try {
             const template = await this.loadTemplate('projectAcceptedEmail');
             const repoName = projectData.repoLink.split('/').pop();
-
             const mailOptions = {
                 from: process.env.gmail_email,
                 to: userEmail,
