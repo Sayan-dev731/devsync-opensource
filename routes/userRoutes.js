@@ -11,116 +11,90 @@ const { requireEmailVerification, addEmailVerificationStatus } = require('../mid
 
 router.get('/', addEmailVerificationStatus, (req, res) => {
     if (req.isAuthenticated()) {
-        res.json({
-            isAuthenticated: true,
-            user: {
-                id: req.user.id,
-                username: req.user.username,
-                displayName: req.user.displayName,
-                photos: req.user.photos
-            },
-            emailVerificationStatus: req.emailVerificationStatus
-        });
-    } else {
-        res.json({ isAuthenticated: false });
-    }
-});
-
-router.get('/stats', requireEmailVerification, async (req, res) => {
-    try {
-        const user = await User.findOne({ githubId: req.user.id }).populate('referredBy', 'name githubUsername');
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        console.log('Stats endpoint - User data:', {
-            githubId: req.user.id,
-            referredBy: user.referredBy,
-            referralCode: user.referralCode
-        });
-
-        res.json({
-            mergedPRs: user.mergedPRs,
-            cancelledPRs: user.cancelledPRs,
-            points: user.points,
-            badges: user.badges,
-            referralCode: user.referralCode,
-            referredBy: user.referredBy
-        });
-    } catch (error) {
-        console.error('Error fetching user stats:', error);
-        res.status(500).json({ error: 'Failed to fetch user stats' });
-    }
-});
-
-// Add new comprehensive user profile endpoint
-router.get('/profile/:username', requireEmailVerification, async (req, res) => {
-    try {
-        // First check email verification for authenticated user viewing their own profile
-        if (req.isAuthenticated() && req.user.username === req.params.username) {
-            const user = await User.findOne({ githubId: req.user.id });
-            if (user && !user.emailVerified) {
-                return res.status(403).json({
-                    error: 'Email verification required to view your profile',
-                    emailVerificationRequired: true,
-                    message: 'Please verify your email address to access your profile',
-                    userEmail: user.email,
-                    verificationEmailSent: user.verificationEmailSent || false
-                });
-            }
-        }
-
-        // Get GitHub user data and DevSync data
-        const [userData, acceptedRepos, user] = await Promise.all([
-            octokit.users.getByUsername({ username: req.params.username }),
-            Repo.find({ reviewStatus: 'accepted' }, 'repoLink'),
-            User.findOne({ username: req.params.username }, 'mergedPRs cancelledPRs')
-        ]);
-
-        // Use GraphQL to fetch pull requests
-        const { search } = await octokit.graphql(`
-            query($searchQuery: String!, $first: Int!) {
-                search(
-                    query: $searchQuery
-                    type: ISSUE
-                    first: $first
-                ) {
-                    nodes {
-                        ... on PullRequest {
-                            id
-                            number
-                            title
-                            url
-                            state
-                            createdAt
-                            updatedAt
-                            mergedAt
-                            closedAt
-                            repository {
-                                url
-                                owner {
-                                    login
-                                }
-                                name
-                            }
-                            author {
-                                login
-                            }
+    /**
+     * Get current authenticated user profile and email verification status.
+     * @route GET /
+     * @returns {Object} User profile and email verification status.
+     */
+    router.get('/', addEmailVerificationStatus, (req, res) => {
+        if (req.isAuthenticated()) {
+            res.json({
+                isAuthenticated: true,
+                user: {
+                    id: req.user.id,
+                    username: req.user.username,
+                    displayName: req.user.displayName,
+                    photos: req.user.photos
+                },
+                emailVerificationStatus: req.emailVerificationStatus
+            });
+        } else {
+            /**
+             * Get comprehensive user profile by username, including GitHub and DevSync data.
+             * @route GET /profile/:username
+             * @param {string} username - GitHub username to fetch profile for.
+             * @returns {Object} User profile, PRs, and repo info.
+             */
+            router.get('/profile/:username', requireEmailVerification, async (req, res) => {
+                try {
+                    // First check email verification for authenticated user viewing their own profile
+                    if (req.isAuthenticated() && req.user.username === req.params.username) {
+                        const user = await User.findOne({ githubId: req.user.id });
+                        if (user && !user.emailVerified) {
+                            return res.status(403).json({
+                                error: 'Email verification required to view your profile',
+                                emailVerificationRequired: true,
+                                message: 'Please verify your email address to access your profile',
+                                userEmail: user.email,
+                                verificationEmailSent: user.verificationEmailSent || false
+                            });
                         }
                     }
-                    pageInfo {
-                        hasNextPage
-                        endCursor
-                    }
-                }
-            }
-        `, {
-            searchQuery: `type:pr author:${req.params.username} created:>=${PROGRAM_START_DATE}`,
-            first: 10
-        });
+                    // Get GitHub user data and DevSync data
+                    const [userData, acceptedRepos, user] = await Promise.all([
+                        octokit.users.getByUsername({ username: req.params.username }),
+                        Repo.find({ reviewStatus: 'accepted' }, 'repoLink'),
+                        User.findOne({ username: req.params.username }, 'mergedPRs cancelledPRs')
+                    ]);
+                    // Use GraphQL to fetch pull requests
+                    const { search } = await octokit.graphql(`
+                        query($searchQuery: String!, $first: Int!) {
+                            search(
+                                query: $searchQuery
+                                type: ISSUE
+                                first: $first
+                            ) {
+                                nodes {
+                                    ... on PullRequest {
+                                        id
+                                        number
+                                        title
+                                        url
+                                        state
+                                        createdAt
+                                        updatedAt
+                                        mergedAt
+                                        closedAt
+                                        repository {
+                                            url
+                                            owner {
+                                                login
+                                            }
+                                            name
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    `, {
+                        searchQuery: `is:pr author:${req.params.username}`,
+                        first: 10
+                    });
 
-        // Transform GraphQL response to match expected format
-        const pullRequests = await Promise.all(search.nodes.map(async (pr) => {
+                    // Transform GraphQL response to match expected format
+                    const pullRequests = await Promise.all(search.nodes.map(async (pr) => {
+                        // ...existing code for transforming PRs and building profileData...
+                        // This block is already present above and should not be duplicated here.
             const repoUrl = pr.repository.url;
             const isDevSyncRepo = acceptedRepos.some(repo => repo.repoLink === repoUrl);
 
@@ -130,14 +104,35 @@ router.get('/profile/:username', requireEmailVerification, async (req, res) => {
 
             // Get additional PR details using REST API (still needed for merged status)
             const { data: prDetails } = await octokit.pulls.get({
-                owner,
-                repo,
-                pull_number: pr.number
-            });
-
-            // Check if PR is detected by DevSync (approved)
-            const isDevSyncDetected = user?.mergedPRs.some(
-                mergedPr => mergedPr.repoId === repoUrl && mergedPr.prNumber === pr.number
+            /**
+             * Get comprehensive user profile by username, including GitHub and DevSync data.
+             * @route GET /profile/:username
+             * @param {string} username - GitHub username to fetch profile for.
+             * @returns {Object} User profile, PRs, and repo info.
+             */
+            router.get('/profile/:username', requireEmailVerification, async (req, res) => {
+                try {
+                    // First check email verification for authenticated user viewing their own profile
+                    if (req.isAuthenticated() && req.user.username === req.params.username) {
+                        const user = await User.findOne({ githubId: req.user.id });
+                        if (user && !user.emailVerified) {
+                            return res.status(403).json({
+                                error: 'Email verification required to view your profile',
+                                emailVerificationRequired: true,
+                                message: 'Please verify your email address to access your profile',
+                                userEmail: user.email,
+                                verificationEmailSent: user.verificationEmailSent || false
+                            });
+                        }
+                    }
+                    // Get GitHub user data and DevSync data
+                    const [userData, acceptedRepos, user] = await Promise.all([
+                        octokit.users.getByUsername({ username: req.params.username }),
+                        Repo.find({ reviewStatus: 'accepted' }, 'repoLink'),
+                        User.findOne({ username: req.params.username }, 'mergedPRs cancelledPRs')
+                    ]);
+                    // Use GraphQL to fetch pull requests
+                    const { search } = await octokit.graphql(`
             );
 
             // Check if PR is in cancelled/rejected list

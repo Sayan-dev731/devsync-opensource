@@ -1,7 +1,12 @@
 const Repo = require('../models/Repo');
 const PendingPR = require('../models/PendingPR');
 
-// Calculate points based on contributions from registered repos
+/**
+ * Calculate points based on contributions from registered repos.
+ * @param {Array} mergedPRs - Array of merged PR objects.
+ * @param {string} userId - User ID to check for maintainer status.
+ * @returns {Promise<number>} Total points earned from merged PRs.
+ */
 async function calculatePoints(mergedPRs, userId) {
     try {
         let totalPoints = 0;
@@ -25,7 +30,11 @@ async function calculatePoints(mergedPRs, userId) {
     }
 }
 
-// Helper function to calculate points from approved PRs
+/**
+ * Calculate points from approved PRs for a user.
+ * @param {string} userId - User ID to fetch approved PRs for.
+ * @returns {Promise<number>} Total points from approved PRs.
+ */
 async function calculatePointsFromApprovedPRs(userId) {
     try {
         const approvedPRs = await PendingPR.find({
