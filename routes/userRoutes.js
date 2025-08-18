@@ -9,51 +9,27 @@ const octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN });
 const PROGRAM_START_DATE = '2025-03-14';
 const { requireEmailVerification, addEmailVerificationStatus } = require('../middleware/emailVerificationMiddleware');
 
-router.get('/', addEmailVerificationStatus, (req, res) => {
-    if (req.isAuthenticated()) {
-        res.json({
-            isAuthenticated: true,
-            user: {
-                id: req.user.id,
-                username: req.user.username,
-                displayName: req.user.displayName,
-                photos: req.user.photos
-            },
-            emailVerificationStatus: req.emailVerificationStatus
-        });
-    } else {
-        res.json({ isAuthenticated: false });
-    }
-});
+if (req.isAuthenticated()) {
+    res.json({
+        isAuthenticated: true,
+        user: {
+            id: req.user.id,
+            username: req.user.username,
+            displayName: req.user.displayName,
+            photos: req.user.photos
+        },
+        emailVerificationStatus: req.emailVerificationStatus
+    });
+} else {
+    res.json({ isAuthenticated: false });
+}
 
-router.get('/stats', requireEmailVerification, async (req, res) => {
-    try {
-        const user = await User.findOne({ githubId: req.user.id }).populate('referredBy', 'name githubUsername');
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        console.log('Stats endpoint - User data:', {
-            githubId: req.user.id,
-            referredBy: user.referredBy,
-            referralCode: user.referralCode
-        });
-
-        res.json({
-            mergedPRs: user.mergedPRs,
-            cancelledPRs: user.cancelledPRs,
-            points: user.points,
-            badges: user.badges,
-            referralCode: user.referralCode,
-            referredBy: user.referredBy
-        });
-    } catch (error) {
-        console.error('Error fetching user stats:', error);
-        res.status(500).json({ error: 'Failed to fetch user stats' });
-    }
-});
-
-// Add new comprehensive user profile endpoint
+/**
+ * Get comprehensive user profile by username, including GitHub and DevSync data.
+ * @route GET /profile/:username
+ * @param {string} username - GitHub username to fetch profile for.
+ * @returns {Object} User profile, PRs, and repo info.
+ */
 router.get('/profile/:username', requireEmailVerification, async (req, res) => {
     try {
         // First check email verification for authenticated user viewing their own profile
@@ -69,14 +45,12 @@ router.get('/profile/:username', requireEmailVerification, async (req, res) => {
                 });
             }
         }
-
         // Get GitHub user data and DevSync data
         const [userData, acceptedRepos, user] = await Promise.all([
             octokit.users.getByUsername({ username: req.params.username }),
             Repo.find({ reviewStatus: 'accepted' }, 'repoLink'),
             User.findOne({ username: req.params.username }, 'mergedPRs cancelledPRs')
         ]);
-
         // Use GraphQL to fetch pull requests
         const { search } = await octokit.graphql(`
             query($searchQuery: String!, $first: Int!) {
@@ -103,19 +77,12 @@ router.get('/profile/:username', requireEmailVerification, async (req, res) => {
                                 }
                                 name
                             }
-                            author {
-                                login
-                            }
                         }
-                    }
-                    pageInfo {
-                        hasNextPage
-                        endCursor
                     }
                 }
             }
         `, {
-            searchQuery: `type:pr author:${req.params.username} created:>=${PROGRAM_START_DATE}`,
+            searchQuery: `is:pr author:${req.params.username}`,
             first: 10
         });
 
@@ -135,11 +102,6 @@ router.get('/profile/:username', requireEmailVerification, async (req, res) => {
                 pull_number: pr.number
             });
 
-            // Check if PR is detected by DevSync (approved)
-            const isDevSyncDetected = user?.mergedPRs.some(
-                mergedPr => mergedPr.repoId === repoUrl && mergedPr.prNumber === pr.number
-            );
-
             // Check if PR is in cancelled/rejected list
             const isRejected = user?.cancelledPRs.some(
                 cancelledPr => cancelledPr.repoId === repoUrl && cancelledPr.prNumber === pr.number
@@ -156,7 +118,7 @@ router.get('/profile/:username', requireEmailVerification, async (req, res) => {
                 isDevSyncRepo,
                 merged: prDetails.merged || pr.state === 'MERGED',
                 closed: pr.state === 'CLOSED' && pr.state !== 'MERGED',
-                isDevSyncDetected: isDevSyncRepo ? isDevSyncDetected : false,
+                isDevSyncDetected: isDevSyncRepo ? true : false,
                 isRejected: isDevSyncRepo ? isRejected : false
             };
         }));
